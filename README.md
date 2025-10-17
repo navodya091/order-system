@@ -5,8 +5,9 @@
 2. `composer install`
 3. Configure `.env` (DB + Redis)
 4. `php artisan migrate`
-5. `php artisan horizon`
-6. Queue import: `php artisan orders:import file.csv`
+5. `php artisan serve`
+6. `php artisan horizon`
+7. Queue import: `php artisan orders:import orders.csv`
 
 ## Features
 - CSV import with queued jobs
