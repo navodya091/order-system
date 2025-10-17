@@ -15,7 +15,7 @@ return new class extends Migration
         $table->id();
         $table->foreignId('order_id')->constrained()->cascadeOnDelete();
         $table->decimal('amount', 10, 2);
-        $table->enum('status',['pending','processed'])->default('pending');
+        $table->enum('status',['pending','refunded'])->default('pending');
         $table->timestamps();
     });
 

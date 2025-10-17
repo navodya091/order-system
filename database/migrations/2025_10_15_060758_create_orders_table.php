@@ -23,7 +23,6 @@ return new class extends Migration
                 'paid',
                 'finalized',
                 'failed',
-                'refunded',
             ])->default('pending');
             $table->timestamps();
         });

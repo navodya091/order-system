@@ -10,6 +10,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Exception;
 
 class ProcessRefund implements ShouldQueue
 {
@@ -35,7 +36,7 @@ class ProcessRefund implements ShouldQueue
         $order = Order::find($this->orderId);
         if (!$order) {
             Log::error("Refund failed: Order #{$this->orderId} not found.");
-            return;
+            throw new Exception("Refund failed: Order #{$this->orderId} not found.");
         }
 
         // Check if refund already processed
@@ -44,19 +45,17 @@ class ProcessRefund implements ShouldQueue
                                 ->first();
 
         if ($existingRefund) {
-            Log::warning("Refund already processed for Order #{$this->orderId}, Amount: {$this->amount}");
+            Log::error("Refund already processed for Order #{$this->orderId}, Amount: {$this->amount}");
+            throw new Exception("Refund already processed for Order #{$this->orderId}");
         }
 
         // Process refund
-        $order->update(['status' => 'refunded']);
         Refund::create([
             'order_id' => $order->id,
-            'amount' => $this->amount,
-            'status' => Refund::STATUS_REFUNDED
+            'amount'   => $this->amount,
+            'status'   => Refund::STATUS_REFUNDED
         ]);
 
-        SendOrderNotification::dispatch($order->id, 'refunded', $this->amount);
+        SendOrderNotification::dispatch($order->id, Refund::STATUS_REFUNDED, $this->amount);
     }
-
-
 }
