@@ -6,23 +6,29 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('notifications', function (Blueprint $table) {
+        Schema::create('notification_histories', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')->constrained()->cascadeOnDelete();
-            $table->enum('status', ['success', 'failed', 'refunded']);
-            $table->decimal('total', 10, 2);
+            $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
+            $table->decimal('amount', 10, 2)->nullable();
+
+            $table->enum('status', [
+                'pending',
+                'reserved',
+                'processing_payment',
+                'payment_failed',
+                'paid',
+                'finalized',
+                'failed',
+                'refunded',
+            ]);
+
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('notification_histories');

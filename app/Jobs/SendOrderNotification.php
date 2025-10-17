@@ -17,30 +17,47 @@ class SendOrderNotification implements ShouldQueue
 
     public int $orderId;
     public string $status;
+    public ?float $amount;
 
     /**
      * Create a new job instance.
      */
-    public function __construct(int $orderId, string $status)
+    public function __construct(int $orderId, string $status, ?float $amount = null)
     {
         $this->orderId = $orderId;
         $this->status = $status;
+        $this->amount = $amount;
     }
 
     /**
      * Execute the job.
      */
-    public function handle()
+    public function handle(): void
     {
         $order = Order::find($this->orderId);
-        if (!$order) return;
 
-        NotificationHistory::create([
-            'order_id' => $order->id,
-            'status' => $this->status,
-            'total' => $order->total
-        ]);
+        if (!$order) {
+            Log::warning("Order not found for notification: {$this->orderId}");
+            return;
+        }
 
-        Log::info("Order {$order->id} processed: {$this->status}");
+        // Prepare notification data
+        $data = [
+            'order_id'    => $order->id,
+            'customer_id' => $order->customer_id,
+            'status'      => $this->status,
+            'amount'       => $order->total,
+        ];
+
+        // Include refund amount if provided
+        if ($this->amount !== null) {
+            $data['amount'] = $this->amount;
+        }
+
+        // Store notification in DB (history table)
+        NotificationHistory::create($data);
+
+        // Structured log for easy tracking
+        Log::info('Order notification sent', $data);
     }
 }
